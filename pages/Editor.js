@@ -7,13 +7,12 @@ import {
   ScrollView,
   Text,
   TouchableWithoutFeedback,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 
-import { useWindowDimensions } from "react-native";
 import { useKeepAwake } from "expo-keep-awake";
 import { useTheme, CommonActions } from "@react-navigation/native";
-import { useHeaderHeight } from "@react-navigation/elements";
-import { useKeyboard } from "@react-native-community/hooks";
 
 import PartOfSpeech from "../components/PartOfSpeech";
 import Meaning from "../components/Meaning";
@@ -56,9 +55,6 @@ export default function Editor({
 
   // Hooks
   useKeepAwake();
-  const keyboard = useKeyboard();
-  const headerHeight = useHeaderHeight();
-  const windowHeight = useWindowDimensions().height;
   const { colors, dark } = useTheme();
 
   // --------------------------------------
@@ -296,11 +292,11 @@ export default function Editor({
     return null;
   }
 
-  const noteHeight =
-    windowHeight - 165 - keyboard.keyboardHeight - headerHeight;
-
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <StatusBar style={dark ? "light" : "dark"} />
 
       <ScrollView
@@ -308,7 +304,7 @@ export default function Editor({
         keyboardShouldPersistTaps="always"
         ref={scrollParentInput}
         style={{
-          height: noteHeight,
+          flex: 1,
         }}
         persistentScrollbar={true}
         removeClippedSubviews={true}
@@ -339,7 +335,6 @@ export default function Editor({
             styles.input,
             {
               color: colors.text,
-              minHeight: noteHeight,
               paddingBottom: Platform.OS === "android" ? 200 : 0,
             },
           ]}
@@ -371,7 +366,6 @@ export default function Editor({
         style={[
           styles.resultContainer,
           {
-            top: noteHeight,
             backgroundColor: colors.backgroundLevel2,
           },
         ]}
@@ -391,14 +385,13 @@ export default function Editor({
           />
         )}
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    // This is need for android to work the meaning scrollview
-    flex: Platform.OS === "android" ? 1 : 0,
+    flex: 1,
   },
   input: {
     paddingHorizontal: 10,
@@ -417,7 +410,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     fontFamily: "iA Writer Quattro",
     width: "100%",
-    position: "absolute",
     height: 165,
     backgroundColor: "#E6E6E6",
     padding: 16,
