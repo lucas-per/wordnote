@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "privacy": "unlisted",
-    "owner": "lucas-per",
+    "owner": "luchas",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -45,6 +45,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "1cfe54c5-984d-4d55-9131-a43ee8057f50"
+      }
     }
   }
 }
