@@ -9,14 +9,15 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 
+import * as Clipboard from "expo-clipboard";
 import { useKeepAwake } from "expo-keep-awake";
 import { useTheme, CommonActions } from "@react-navigation/native";
 
 import PartOfSpeech from "../components/PartOfSpeech";
 import Meaning from "../components/Meaning";
-import BookIcon from "../assets/icons/Book";
 import LanguageIcon from "../assets/icons/Language";
 import ExportIcon from "../assets/icons/Export";
 
@@ -118,7 +119,7 @@ export default function Editor({
         <View
           style={{
             flexDirection: "row",
-            width: 30,
+            width: 72,
             justifyContent: "space-between",
           }}
         >
@@ -137,11 +138,11 @@ export default function Editor({
             </View>
           </TouchableWithoutFeedback>
 
-          {/* <TouchableWithoutFeedback>
+          <TouchableWithoutFeedback onPress={onCopyNote}>
             <View style={{ width: 30, height: 30 }}>
               <ExportIcon width={24} height={24} fill={colors.primary} />
             </View>
-          </TouchableWithoutFeedback> */}
+          </TouchableWithoutFeedback>
         </View>
       ),
     });
@@ -216,7 +217,10 @@ export default function Editor({
 
   // Query DB
   function findWord(word) {
-    if (!word) return null;
+    if (!word) {
+      setResult(null);
+      return null;
+    }
     if (!db.current) return null;
 
     let q = word.toLowerCase();
@@ -266,6 +270,12 @@ export default function Editor({
     setResult(null);
   };
 
+  const onCopyNote = async () => {
+    const fullText = title ? `${title}\n\n${noteContent}` : noteContent;
+    await Clipboard.setStringAsync(fullText);
+    Alert.alert("Copiado!", "O conteúdo do caderno foi copiado para a área de transferência.");
+  };
+
   const onFocusNote = () => {
     let query = getWordPerLine(noteContent, cursorPos);
     findWord(query);
@@ -295,7 +305,7 @@ export default function Editor({
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <StatusBar style={dark ? "light" : "dark"} />
 
@@ -357,34 +367,30 @@ export default function Editor({
       </ScrollView>
 
       {/* ####### Result ##### */}
-      <ScrollView
-        ref={scrollParentResult}
-        contentContainerStyle={{ paddingBottom: 30, flexGrow: 1 }}
-        persistentScrollbar={true}
-        keyboardDismissMode="none"
-        keyboardShouldPersistTaps="always"
-        style={[
-          styles.resultContainer,
-          {
-            backgroundColor: colors.backgroundLevel2,
-          },
-        ]}
-        onContentSizeChange={() => {
-          scrollParentResult.current.scrollTo({ x: 0, y: 0, animated: false });
-        }}
-      >
-        {result ? (
-          parseResult(result)
-        ) : (
-          <BookIcon
-            style={{
-              alignSelf: "center",
-              justifySelf: "center",
-              marginTop: 150 / 2 - 20,
-            }}
-          />
-        )}
-      </ScrollView>
+      {result && (
+        <ScrollView
+          ref={scrollParentResult}
+          contentContainerStyle={{ paddingBottom: 30, flexGrow: 1 }}
+          persistentScrollbar={true}
+          keyboardDismissMode="none"
+          keyboardShouldPersistTaps="always"
+          style={[
+            styles.resultContainer,
+            {
+              backgroundColor: colors.backgroundLevel2,
+            },
+          ]}
+          onContentSizeChange={() => {
+            scrollParentResult.current.scrollTo({
+              x: 0,
+              y: 0,
+              animated: false,
+            });
+          }}
+        >
+          {parseResult(result)}
+        </ScrollView>
+      )}
     </KeyboardAvoidingView>
   );
 }
