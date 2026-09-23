@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt
+@@ -297,7 +297,7 @@
+     }
+ 
+     private fun performDraw(op: DrawingOp) {
+-        super.drawChild(op.canvas, op.child, op.drawingTime)
++        super.drawChild(op.canvas!!, op.child!!, op.drawingTime)
+     }
+ 
+     private fun obtainDrawingOp(): DrawingOp =
