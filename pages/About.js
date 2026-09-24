@@ -57,10 +57,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 24,
     fontWeight: "bold",
+    fontFamily: "iA Writer Quattro",
   },
   item: {
     fontSize: 16,
     marginBottom: 16,
     lineHeight: 20,
+    fontFamily: "iA Writer Quattro",
   },
 });

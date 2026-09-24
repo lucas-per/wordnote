@@ -31,6 +31,7 @@ function ListItem({ title, content, createAt, press }) {
             fontSize: 18,
             letterSpacing: -0.3,
             fontWeight: "700",
+            fontFamily: "iA Writer Quattro",
             marginBottom: 5,
             color: colors.text,
           }}
@@ -41,6 +42,7 @@ function ListItem({ title, content, createAt, press }) {
         <Text
           style={{
             fontSize: 16,
+            fontFamily: "iA Writer Quattro",
             opacity: 0.7,
             justifyContent: "space-between",
             flexDirection: "row",

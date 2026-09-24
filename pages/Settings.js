@@ -98,6 +98,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
+    fontFamily: "iA Writer Quattro",
   },
   banner: {
     margin: 20,

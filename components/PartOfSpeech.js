@@ -29,15 +29,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   type: {
-    fontFamily: "iA Writer Quattro Italic",
-    fontStyle: "italic",
+    fontFamily: "iA Writer Duo",
     fontWeight: "400",
     fontSize: 14,
     letterSpacing: -0.02,
     color: "#000000",
   },
   phone: {
-    fontFamily: "iA Writer Quattro",
     marginRight: 5,
   },
 });

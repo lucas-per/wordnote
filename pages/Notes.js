@@ -189,6 +189,7 @@ function EmptyState({ title, description }) {
         style={{
           fontSize: 32,
           fontWeight: "bold",
+          fontFamily: "iA Writer Quattro",
           color: colors.text,
           marginBottom: 8,
         }}
@@ -198,6 +199,7 @@ function EmptyState({ title, description }) {
       <Text
         style={{
           fontSize: 16,
+          fontFamily: "iA Writer Quattro",
           color: colors.text,
           textAlign: "center",
           lineHeight: 20,
@@ -217,6 +219,7 @@ const styles = StyleSheet.create({
     fontSize: 36,
     fontWeight: "bold",
     letterSpacing: -0.5,
+    fontFamily: "iA Writer Quattro",
   },
   centerWrap: {
     height: 70,

@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
   },
   type: {
     width: "93%",
-    fontFamily: "iA Writer Quattro",
+    fontFamily: "iA Writer Duo",
     fontWeight: "400",
     lineHeight: 18,
     fontSize: 14,

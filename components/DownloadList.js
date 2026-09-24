@@ -104,6 +104,7 @@ export default function DownloadList({
             <Text
               style={{
                 fontSize: 18,
+                fontFamily: "iA Writer Quattro",
                 marginBottom: 5,
                 color: colors.text,
               }}

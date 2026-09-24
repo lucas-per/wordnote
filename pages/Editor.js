@@ -9,6 +9,7 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
+  LayoutAnimation,
 } from "react-native";
 
 import * as Clipboard from "expo-clipboard";
@@ -219,6 +220,8 @@ export default function Editor({
     if (word === lastQuery.current) return null;
     lastQuery.current = word;
 
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
     if (!word) {
       setResult(null);
       return null;
@@ -407,16 +410,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     fontSize: 18,
     lineHeight: 36,
-    fontFamily: "iA Writer Duo",
   },
   title: {
-    fontFamily: "iA Writer Duo Bold",
+    fontWeight: "bold",
     fontSize: 24,
     height: 42,
     letterSpacing: -0.5,
   },
   resultContainer: {
-    fontFamily: "iA Writer Quattro",
+    fontFamily: "iA Writer Duo",
     width: "100%",
     height: 165,
     backgroundColor: "#E6E6E6",
