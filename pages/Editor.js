@@ -9,7 +9,6 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from "react-native";
 
 import * as Clipboard from "expo-clipboard";
@@ -18,8 +17,9 @@ import { useTheme, CommonActions } from "@react-navigation/native";
 
 import PartOfSpeech from "../components/PartOfSpeech";
 import Meaning from "../components/Meaning";
+import Toast from "../components/Toast";
 import LanguageIcon from "../assets/icons/Language";
-import ExportIcon from "../assets/icons/Export";
+import CopyIcon from "../assets/icons/Copy";
 
 import {
   getNoteContent,
@@ -41,6 +41,7 @@ export default function Editor({
   const noteInput = useRef(null);
   const noteID = useRef(null);
   const db = useRef(null);
+  const lastQuery = useRef(null);
 
   const defaultTitle = i18n.t("editor.defaultTitle");
 
@@ -48,6 +49,7 @@ export default function Editor({
   const [noteContent, setNoteContent] = useState("");
   const [cursorPos, setCursorPos] = useState({ start: 0, end: 0 });
   const [title, setTitle] = useState("");
+  const [toastTrigger, setToastTrigger] = useState(null);
 
   // Lang
   let langFromNote = globalData.filter((item) => item.id === noteID.current)[0]
@@ -64,6 +66,7 @@ export default function Editor({
   useEffect(() => {
     if (route.params?.id) {
       noteID.current = route.params.id;
+      lastQuery.current = null;
     }
 
     if (route.params?.title) {
@@ -140,7 +143,7 @@ export default function Editor({
 
           <TouchableWithoutFeedback onPress={onCopyNote}>
             <View style={{ width: 30, height: 30 }}>
-              <ExportIcon width={24} height={24} fill={colors.primary} />
+              <CopyIcon width={24} height={24} fill={colors.primary} />
             </View>
           </TouchableWithoutFeedback>
         </View>
@@ -189,34 +192,33 @@ export default function Editor({
     });
   }
 
-  // Find a way to do it more smoothly, less ifs.
+  // Retorna a linha em que o cursor está, pela posição de caractere,
+  // usando os limites (offset) de cada linha em vez de acumular
+  // caractere a caractere — evita "vazar" pra linha anterior quando
+  // o cursor cai bem na quebra de linha.
   function getWordPerLine(content, cursor) {
-    let word = "";
-    for (let pos = 0; pos < content.length; pos++) {
-      let crossTheCursor = cursor.end - 1 <= pos;
-      word += content[pos];
+    const lines = content.split("\n");
+    let offset = 0;
 
-      // Clean the construction
-      if (content[pos] === "\n") {
-        if (!crossTheCursor) {
-          word = "";
-        }
+    for (let line of lines) {
+      const lineStart = offset;
+      const lineEnd = offset + line.length;
+
+      if (cursor.end >= lineStart && cursor.end <= lineEnd) {
+        return line.trim().toLowerCase().replace("- ", "");
       }
 
-      // Middle of the word
-      if (content[pos] === "\n" && crossTheCursor) {
-        return word.trim().toLowerCase().replace("- ", "");
-      }
-
-      //End of line
-      if (content.length === pos + 1) {
-        return word.trim().toLowerCase().replace("- ", "");
-      }
+      offset = lineEnd + 1; // +1 pula o caractere "\n"
     }
+
+    return "";
   }
 
   // Query DB
   function findWord(word) {
+    if (word === lastQuery.current) return null;
+    lastQuery.current = word;
+
     if (!word) {
       setResult(null);
       return null;
@@ -273,7 +275,7 @@ export default function Editor({
   const onCopyNote = async () => {
     const fullText = title ? `${title}\n\n${noteContent}` : noteContent;
     await Clipboard.setStringAsync(fullText);
-    Alert.alert("Copiado!", "O conteúdo do caderno foi copiado para a área de transferência.");
+    setToastTrigger(Date.now());
   };
 
   const onFocusNote = () => {
@@ -391,6 +393,8 @@ export default function Editor({
           {parseResult(result)}
         </ScrollView>
       )}
+
+      <Toast message="Caderno copiado para a área de transferência" trigger={toastTrigger} />
     </KeyboardAvoidingView>
   );
 }
@@ -412,8 +416,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   resultContainer: {
-    borderTopRightRadius: 24,
-    borderTopLeftRadius: 24,
     fontFamily: "iA Writer Quattro",
     width: "100%",
     height: 165,
