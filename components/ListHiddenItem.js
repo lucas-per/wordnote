@@ -3,8 +3,8 @@ import { StyleSheet, TouchableOpacity, Animated } from "react-native";
 
 import TrashIcon from "../assets/icons/Trash";
 
-// Ícone 4x maior que o anterior (era 20x20)
-const ICON_SIZE = 80;
+// Ícone 2x maior que o original (era 20x20, agora 40x40)
+const ICON_SIZE = 40;
 
 function HiddenItem({ onDelete, swipeValue, maxWidth }) {
   // O ícone acompanha o arrasto (efeito de paralaxe): começa escondido
@@ -13,7 +13,7 @@ function HiddenItem({ onDelete, swipeValue, maxWidth }) {
   const translateX = swipeValue
     ? swipeValue.interpolate({
         inputRange: [0, maxWidth],
-        outputRange: [-ICON_SIZE / 2, maxWidth / 2 - ICON_SIZE / 2],
+        outputRange: [0, maxWidth / 2 - ICON_SIZE / 2],
         extrapolate: "clamp",
       })
     : 0;

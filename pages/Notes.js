@@ -168,9 +168,10 @@ export default function Notes({ navigation, globalData, setGlobalData, i18n }) {
           )}
           disableLeftSwipe={Platform.OS === "android"}
           disableRightSwipe={Platform.OS !== "android"}
-          leftOpenValue={0}
-          rightOpenValue={deleteBoxWidth}
-          stopRightSwipe={deleteBoxWidth}
+          leftOpenValue={deleteBoxWidth}
+          stopLeftSwipe={deleteBoxWidth}
+          rightOpenValue={-deleteBoxWidth}
+          stopRightSwipe={-deleteBoxWidth}
           onSwipeValueChange={onSwipeValueChange}
           previewRowKey={"0"}
           previewOpenValue={-40}
