@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   LayoutAnimation,
   TouchableWithoutFeedback,
   Platform,
+  Animated,
+  Dimensions,
 } from "react-native";
 import { SwipeListView } from "react-native-swipe-list-view";
 import { StatusBar } from "expo-status-bar";
@@ -26,6 +28,15 @@ export default function Notes({ navigation, globalData, setGlobalData, i18n }) {
   const { colors, dark } = useTheme();
   const [notes, setNotes] = useState(globalData);
   const [pendingDelete, setPendingDelete] = useState(null);
+  const deleteBoxWidth = Dimensions.get("window").width / 4;
+  const swipeAnimRefs = useRef({}).current;
+
+  const getSwipeAnim = (id) => {
+    if (!swipeAnimRefs[id]) {
+      swipeAnimRefs[id] = new Animated.Value(0);
+    }
+    return swipeAnimRefs[id];
+  };
 
   // Effects
   // --------------------
@@ -90,6 +101,11 @@ export default function Notes({ navigation, globalData, setGlobalData, i18n }) {
     setPendingDelete(null);
   };
 
+  const onSwipeValueChange = (swipeData) => {
+    const { key, value } = swipeData;
+    getSwipeAnim(key).setValue(Math.min(Math.abs(value), deleteBoxWidth));
+  };
+
   return (
     <View
       style={{
@@ -144,11 +160,18 @@ export default function Notes({ navigation, globalData, setGlobalData, i18n }) {
             <Text style={[styles.header, { color: colors.text }]}>{title}</Text>
           )}
           renderHiddenItem={(data, rowMap) => (
-            <HiddenItem onDelete={() => requestDelete(data.item.id, rowMap)} />
+            <HiddenItem
+              onDelete={() => requestDelete(data.item.id, rowMap)}
+              swipeValue={getSwipeAnim(data.item.id)}
+              maxWidth={deleteBoxWidth}
+            />
           )}
           disableLeftSwipe={Platform.OS === "android"}
           disableRightSwipe={Platform.OS !== "android"}
           leftOpenValue={0}
+          rightOpenValue={deleteBoxWidth}
+          stopRightSwipe={deleteBoxWidth}
+          onSwipeValueChange={onSwipeValueChange}
           previewRowKey={"0"}
           previewOpenValue={-40}
           previewOpenDelay={3000}

@@ -1,31 +1,57 @@
 import React from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet, TouchableOpacity, Animated } from "react-native";
 
 import TrashIcon from "../assets/icons/Trash";
 
-function HiddenItem({ onDelete }) {
+// Ícone 4x maior que o anterior (era 20x20)
+const ICON_SIZE = 80;
+
+function HiddenItem({ onDelete, swipeValue, maxWidth }) {
+  // O ícone acompanha o arrasto (efeito de paralaxe): começa escondido
+  // fora da área revelada e vai se centralizando conforme a caixa
+  // cresce, até ficar parado no centro quando atinge a largura máxima.
+  const translateX = swipeValue
+    ? swipeValue.interpolate({
+        inputRange: [0, maxWidth],
+        outputRange: [-ICON_SIZE / 2, maxWidth / 2 - ICON_SIZE / 2],
+        extrapolate: "clamp",
+      })
+    : 0;
+
   return (
     <TouchableOpacity
       style={styles.rowBack}
       onPress={onDelete}
+      activeOpacity={0.85}
       accessibilityLabel="Excluir caderno"
       accessibilityRole="button"
     >
-      <TrashIcon fill="#fff" width={20} height={20} />
+      <Animated.View
+        style={[
+          styles.iconWrap,
+          { width: ICON_SIZE },
+          swipeValue && { transform: [{ translateX }] },
+        ]}
+      >
+        <TrashIcon fill="#fff" width={ICON_SIZE} height={ICON_SIZE} />
+      </Animated.View>
     </TouchableOpacity>
   );
 }
 
-export default React.forwardRef((props, ref) => (
-  <HiddenItem innerRef={ref} {...props} />
-));
+export default HiddenItem;
 
 const styles = StyleSheet.create({
   rowBack: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-end",
     backgroundColor: "rgb(236,94,65)",
-    paddingRight: 28,
+  },
+  iconWrap: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
