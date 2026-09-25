@@ -15,6 +15,8 @@ import { AnimationConstants } from "../assets/theme/tokens";
 
 import ListItem from "../components/ListItem";
 import HiddenItem from "../components/ListHiddenItem";
+import DismissibleTip from "../components/DismissibleTip";
+import ConfirmDialog from "../components/ConfirmDialog";
 import SettingsIcon from "../assets/icons/Settings";
 import AddIcon from "../assets/icons/Add";
 
@@ -23,7 +25,7 @@ import { createNewNote, deleteNote } from "../lib/appDB";
 export default function Notes({ navigation, globalData, setGlobalData, i18n }) {
   const { colors, dark } = useTheme();
   const [notes, setNotes] = useState(globalData);
-  const [enableDelete, setEnableDelete] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   // Effects
   // --------------------
@@ -72,20 +74,20 @@ export default function Notes({ navigation, globalData, setGlobalData, i18n }) {
 
   //Events
   //--------------
-  const onSwipeStart = () => {
-    setEnableDelete(false);
+  const requestDelete = (rowKey, rowMap) => {
+    setPendingDelete({ rowKey, rowMap });
   };
 
-  const onSwipeEnd = () => {
-    setEnableDelete(true);
+  const cancelDelete = () => {
+    pendingDelete?.rowMap?.[pendingDelete.rowKey]?.closeRow();
+    setPendingDelete(null);
   };
 
-  const onSwipeValueChange = (swipeData) => {
-    const { key, value } = swipeData;
-    // Use absolute values to work for left or right swipe
-    if (Math.abs(value) > 150 && enableDelete === true) {
-      removeNote(key);
+  const confirmDelete = () => {
+    if (pendingDelete) {
+      removeNote(pendingDelete.rowKey);
     }
+    setPendingDelete(null);
   };
 
   return (
@@ -102,6 +104,14 @@ export default function Notes({ navigation, globalData, setGlobalData, i18n }) {
         <EmptyState
           title={i18n.t("notes.welcome")}
           description={i18n.t("notes.description")}
+        />
+      )}
+
+      {notes.length > 0 && (
+        <DismissibleTip
+          storageKey="@deleteTipDismissed"
+          title="Como excluir um caderno"
+          description="Deslize o caderno para o lado e toque no ícone da lixeira para excluí-lo."
         />
       )}
 
@@ -134,7 +144,7 @@ export default function Notes({ navigation, globalData, setGlobalData, i18n }) {
             <Text style={[styles.header, { color: colors.text }]}>{title}</Text>
           )}
           renderHiddenItem={(data, rowMap) => (
-            <HiddenItem data={data} rowMap={rowMap} />
+            <HiddenItem onDelete={() => requestDelete(data.item.id, rowMap)} />
           )}
           disableLeftSwipe={Platform.OS === "android"}
           disableRightSwipe={Platform.OS !== "android"}
@@ -142,11 +152,18 @@ export default function Notes({ navigation, globalData, setGlobalData, i18n }) {
           previewRowKey={"0"}
           previewOpenValue={-40}
           previewOpenDelay={3000}
-          swipeGestureEnded={onSwipeEnd}
-          swipeGestureBegan={onSwipeStart}
-          onSwipeValueChange={onSwipeValueChange}
         />
       ) : null}
+
+      <ConfirmDialog
+        visible={!!pendingDelete}
+        title="Excluir caderno"
+        description="Essa ação não pode ser desfeita. Todas as palavras salvas nesse caderno serão perdidas."
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
 
       <View style={styles.centerWrap}>
         <TouchableWithoutFeedback
