@@ -25,6 +25,8 @@ import Notes from "./pages/Notes";
 import Languages from "./pages/Languages";
 import Settings from "./pages/Settings";
 import About from "./pages/About";
+import CustomDictionary from "./pages/CustomDictionary";
+import AddCustomWord from "./pages/AddCustomWord";
 
 import { LightThemeTokens, DarkThemeTokens } from "./assets/theme/tokens";
 const Stack = createNativeStackNavigator();
@@ -170,6 +172,27 @@ export default function App() {
           }}
         >
           {(props) => <About {...props} {...commonProps} />}
+        </Stack.Screen>
+
+        <Stack.Screen
+          name="Settings.customDict"
+          options={{
+            title: "Meu dicionário",
+            headerShadowVisible: false,
+          }}
+        >
+          {(props) => <CustomDictionary {...props} {...commonProps} />}
+        </Stack.Screen>
+
+        <Stack.Screen
+          name="Settings.customDictAdd"
+          options={{
+            title: "Adicionar palavra",
+            headerShadowVisible: false,
+            presentation: "modal",
+          }}
+        >
+          {(props) => <AddCustomWord {...props} {...commonProps} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>

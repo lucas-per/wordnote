@@ -28,6 +28,7 @@ import {
   updateTitle,
   updateLang,
 } from "../lib/appDB";
+import { findCustomWord } from "../lib/customDictDB";
 
 export default function Editor({
   navigation,
@@ -47,6 +48,7 @@ export default function Editor({
   const defaultTitle = i18n.t("editor.defaultTitle");
 
   const [result, setResult] = useState(null);
+  const [notFoundWord, setNotFoundWord] = useState(null);
   const [noteContent, setNoteContent] = useState("");
   const [cursorPos, setCursorPos] = useState({ start: 0, end: 0 });
   const [title, setTitle] = useState("");
@@ -216,7 +218,7 @@ export default function Editor({
   }
 
   // Query DB
-  function findWord(word) {
+  async function findWord(word) {
     if (word === lastQuery.current) return null;
     lastQuery.current = word;
 
@@ -224,16 +226,50 @@ export default function Editor({
 
     if (!word) {
       setResult(null);
+      setNotFoundWord(null);
       return null;
     }
+
+    const q = word.toLowerCase();
+
+    // Dicionário pessoal tem prioridade sobre a base oficial
+    const customEntry = await findCustomWord(q, lang);
+    if (customEntry) {
+      setNotFoundWord(null);
+      setResult(
+        JSON.stringify({
+          _array: [
+            {
+              word: customEntry.word,
+              meanings: JSON.stringify([
+                {
+                  partOfSpeech: customEntry.partOfSpeech,
+                  definitions: [{ definition: customEntry.definition }],
+                },
+              ]),
+              phonetics: JSON.stringify([]),
+            },
+          ],
+        })
+      );
+      return null;
+    }
+
     if (!db.current) return null;
 
-    let q = word.toLowerCase();
     db.current.transaction((tx) => {
       tx.executeSql(
         `select * from words WHERE word='${q}'`,
         [],
-        (_, { rows }) => setResult(JSON.stringify(rows))
+        (_, { rows }) => {
+          if (rows.length > 0) {
+            setNotFoundWord(null);
+            setResult(JSON.stringify(rows));
+          } else {
+            setResult(null);
+            setNotFoundWord(q);
+          }
+        }
       );
     });
   }
@@ -397,6 +433,34 @@ export default function Editor({
         </ScrollView>
       )}
 
+      {!result && notFoundWord && (
+        <View
+          style={[
+            styles.resultContainer,
+            styles.notFoundContainer,
+            { backgroundColor: colors.backgroundLevel2 },
+          ]}
+        >
+          <Text style={[styles.notFoundText, { color: colors.text }]}>
+            "{notFoundWord}" não encontrada
+          </Text>
+          <TouchableWithoutFeedback
+            onPress={() =>
+              navigation.navigate("Settings.customDictAdd", {
+                initialWord: notFoundWord,
+                lang,
+              })
+            }
+          >
+            <View
+              style={[styles.addWordButton, { backgroundColor: colors.primary }]}
+            >
+              <Text style={styles.addWordButtonText}>Adicionar definição</Text>
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      )}
+
       <Toast message="Caderno copiado para a área de transferência" trigger={toastTrigger} />
     </KeyboardAvoidingView>
   );
@@ -424,5 +488,25 @@ const styles = StyleSheet.create({
     backgroundColor: "#E6E6E6",
     padding: 16,
     paddingTop: 12,
+  },
+  notFoundContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  notFoundText: {
+    fontFamily: "iA Writer Duo",
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  addWordButton: {
+    borderRadius: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+  addWordButtonText: {
+    color: "#fff",
+    fontFamily: "iA Writer Duo",
+    fontWeight: "600",
+    fontSize: 14,
   },
 });

@@ -27,6 +27,10 @@ export default function Settings({
     navigation.navigate("Settings.languages");
   };
 
+  const _handleCustomDictPress = () => {
+    navigation.navigate("Settings.customDict");
+  };
+
   const _handleAboutPress = () => {
     navigation.navigate("Settings.about");
   };
@@ -58,6 +62,17 @@ export default function Settings({
         <View style={[styles.listItem, { borderBottomColor: colors.border }]}>
           <Text style={[styles.label, { color: colors.text }]}>
             {i18n.t("settings.dict")}
+          </Text>
+          <View style={styles.rightSide}>
+            <Chevron width={20} height={20} fill={colors.text} />
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
+
+      <TouchableWithoutFeedback onPress={_handleCustomDictPress}>
+        <View style={[styles.listItem, { borderBottomColor: colors.border }]}>
+          <Text style={[styles.label, { color: colors.text }]}>
+            Meu dicionário
           </Text>
           <View style={styles.rightSide}>
             <Chevron width={20} height={20} fill={colors.text} />
