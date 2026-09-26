@@ -13,6 +13,7 @@ import { languages } from "../languages";
 import AddIcon from "../assets/icons/Add";
 import TrashIcon from "../assets/icons/Trash";
 import ConfirmDialog from "../components/ConfirmDialog";
+import Chip from "../components/Chip";
 
 const langLabel = (code) =>
   languages.find((l) => l.code === code)?.label || code;
@@ -49,42 +50,18 @@ export default function CustomDictionary({ navigation }) {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {availableLangs.length > 1 && (
         <View style={styles.filterRow}>
-          <TouchableOpacity
+          <Chip
+            label="Todos"
+            active={filterLang === "all"}
             onPress={() => setFilterLang("all")}
-            style={[
-              styles.chip,
-              {
-                borderColor: colors.border,
-                backgroundColor:
-                  filterLang === "all" ? colors.primary : "transparent",
-              },
-            ]}
-          >
-            <Text
-              style={{ color: filterLang === "all" ? "#fff" : colors.text }}
-            >
-              Todos
-            </Text>
-          </TouchableOpacity>
+          />
           {availableLangs.map((code) => (
-            <TouchableOpacity
+            <Chip
               key={code}
+              label={langLabel(code)}
+              active={filterLang === code}
               onPress={() => setFilterLang(code)}
-              style={[
-                styles.chip,
-                {
-                  borderColor: colors.border,
-                  backgroundColor:
-                    filterLang === code ? colors.primary : "transparent",
-                },
-              ]}
-            >
-              <Text
-                style={{ color: filterLang === code ? "#fff" : colors.text }}
-              >
-                {langLabel(code)}
-              </Text>
-            </TouchableOpacity>
+            />
           ))}
         </View>
       )}
@@ -160,14 +137,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
   },
-  chip: {
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    marginRight: 8,
-    marginBottom: 8,
-  },
   empty: {
     flex: 1,
     alignItems: "center",
@@ -176,6 +145,9 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontFamily: "iA Writer Quattro",
+    fontSize: 15,
+    lineHeight: 19,
+    includeFontPadding: false,
     textAlign: "center",
     opacity: 0.7,
   },
@@ -188,12 +160,16 @@ const styles = StyleSheet.create({
   word: {
     fontFamily: "iA Writer Quattro",
     fontSize: 16,
+    lineHeight: 20,
+    includeFontPadding: false,
     fontWeight: "600",
     marginBottom: 4,
   },
   definition: {
     fontFamily: "iA Writer Quattro",
     fontSize: 14,
+    lineHeight: 18,
+    includeFontPadding: false,
     opacity: 0.7,
   },
   fab: {

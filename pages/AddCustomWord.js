@@ -14,6 +14,85 @@ import { useTheme } from "@react-navigation/native";
 import { saveCustomWord } from "../lib/customDictDB";
 import { getOfflineLangs } from "../lib/appDB";
 import { languages } from "../languages";
+import SelectField from "../components/SelectField";
+import Chip from "../components/Chip";
+
+// Classes gramaticais, localizadas por idioma. Usa "en" como fallback
+// pra qualquer idioma que não esteja mapeado aqui.
+const PARTS_OF_SPEECH = {
+  en: [
+    "noun",
+    "verb",
+    "adjective",
+    "adverb",
+    "pronoun",
+    "preposition",
+    "conjunction",
+    "interjection",
+    "article",
+    "numeral",
+  ],
+  pt: [
+    "substantivo",
+    "verbo",
+    "adjetivo",
+    "advérbio",
+    "pronome",
+    "preposição",
+    "conjunção",
+    "interjeição",
+    "artigo",
+    "numeral",
+  ],
+  es: [
+    "sustantivo",
+    "verbo",
+    "adjetivo",
+    "adverbio",
+    "pronombre",
+    "preposición",
+    "conjunción",
+    "interjección",
+    "artículo",
+    "numeral",
+  ],
+  fr: [
+    "nom",
+    "verbe",
+    "adjectif",
+    "adverbe",
+    "pronom",
+    "préposition",
+    "conjonction",
+    "interjection",
+    "article",
+    "numéral",
+  ],
+  it: [
+    "sostantivo",
+    "verbo",
+    "aggettivo",
+    "avverbio",
+    "pronome",
+    "preposizione",
+    "congiunzione",
+    "interiezione",
+    "articolo",
+    "numerale",
+  ],
+  de: [
+    "Substantiv",
+    "Verb",
+    "Adjektiv",
+    "Adverb",
+    "Pronomen",
+    "Präposition",
+    "Konjunktion",
+    "Interjektion",
+    "Artikel",
+    "Numerale",
+  ],
+};
 
 export default function AddCustomWord({ navigation, route }) {
   const { colors } = useTheme();
@@ -46,6 +125,7 @@ export default function AddCustomWord({ navigation, route }) {
   }, []);
 
   const canSave = word.trim().length > 0 && definition.trim().length > 0;
+  const posOptions = PARTS_OF_SPEECH[lang] || PARTS_OF_SPEECH.en;
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -79,47 +159,34 @@ export default function AddCustomWord({ navigation, route }) {
           placeholder="ex: serendipity"
           placeholderTextColor={colors.border}
           autoCapitalize="none"
+          textAlignVertical="center"
+          includeFontPadding={false}
         />
 
         <Text style={[styles.label, { color: colors.text }]}>Idioma</Text>
         <View style={styles.chipRow}>
           {availableLangs.map((l) => (
-            <TouchableOpacity
+            <Chip
               key={l.code}
-              onPress={() => setLang(l.code)}
-              style={[
-                styles.chip,
-                {
-                  borderColor: colors.border,
-                  backgroundColor:
-                    lang === l.code ? colors.primary : "transparent",
-                },
-              ]}
-            >
-              <Text
-                style={{
-                  color: lang === l.code ? "#fff" : colors.text,
-                  fontFamily: "iA Writer Quattro",
-                }}
-              >
-                {l.label}
-              </Text>
-            </TouchableOpacity>
+              label={l.label}
+              active={lang === l.code}
+              onPress={() => {
+                setLang(l.code);
+                setPartOfSpeech("");
+              }}
+            />
           ))}
         </View>
 
         <Text style={[styles.label, { color: colors.text }]}>
           Classe gramatical (opcional)
         </Text>
-        <TextInput
-          style={[
-            styles.input,
-            { color: colors.text, borderColor: colors.border },
-          ]}
+        <SelectField
+          label="Classe gramatical"
           value={partOfSpeech}
-          onChangeText={setPartOfSpeech}
-          placeholder="ex: substantivo, verbo..."
-          placeholderTextColor={colors.border}
+          placeholder="Selecione uma classe"
+          options={posOptions}
+          onSelect={setPartOfSpeech}
         />
 
         <Text style={[styles.label, { color: colors.text }]}>Definição</Text>
@@ -134,6 +201,8 @@ export default function AddCustomWord({ navigation, route }) {
           placeholder="O que essa palavra significa?"
           placeholderTextColor={colors.border}
           multiline
+          textAlignVertical="top"
+          includeFontPadding={false}
         />
       </ScrollView>
 
@@ -162,6 +231,8 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: "iA Writer Quattro",
     fontSize: 14,
+    lineHeight: 18,
+    includeFontPadding: false,
     marginBottom: 8,
     marginTop: 16,
     opacity: 0.7,
@@ -172,23 +243,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
+    lineHeight: 20,
     fontFamily: "iA Writer Quattro",
   },
   multiline: {
     minHeight: 120,
-    textAlignVertical: "top",
   },
   chipRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-  },
-  chip: {
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    marginRight: 8,
-    marginBottom: 8,
   },
   saveButton: {
     margin: 20,
@@ -201,5 +264,7 @@ const styles = StyleSheet.create({
     fontFamily: "iA Writer Quattro",
     fontWeight: "600",
     fontSize: 16,
+    lineHeight: 20,
+    includeFontPadding: false,
   },
 });
