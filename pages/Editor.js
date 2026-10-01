@@ -31,6 +31,10 @@ import {
 import { findCustomWord } from "../lib/customDictDB";
 import { fetchOnlineDefinition } from "../lib/onlineDictionary";
 
+// Mesma altura usada em styles.resultContainer — extraída aqui pra
+// poder ser usada também no cálculo de compensação do scroll.
+const RESULT_BOX_HEIGHT = 165;
+
 export default function Editor({
   navigation,
   route,
@@ -45,6 +49,8 @@ export default function Editor({
   const noteID = useRef(null);
   const db = useRef(null);
   const lastQuery = useRef(null);
+  const scrollOffsetY = useRef(0);
+  const resultBoxWasVisible = useRef(false);
 
   const defaultTitle = i18n.t("editor.defaultTitle");
 
@@ -232,6 +238,25 @@ export default function Editor({
   }
 
   // Query DB
+  // Quando a caixa de significado (ou "buscando online"/"não encontrada")
+  // aparece, ela reduz a área visível da nota por baixo — sem compensar
+  // o scroll, o que estava visível na faixa de baixo da tela (podendo
+  // incluir a palavra recém-tocada) fica escondido atrás dela. Aqui
+  // empurramos o scroll pra baixo exatamente na altura da caixa, só no
+  // instante em que ela aparece (não a cada re-render).
+  useEffect(() => {
+    const boxVisible = !!(result || loadingOnline || notFoundWord);
+
+    if (boxVisible && !resultBoxWasVisible.current) {
+      scrollParentInput.current?.scrollTo({
+        y: scrollOffsetY.current + RESULT_BOX_HEIGHT,
+        animated: true,
+      });
+    }
+
+    resultBoxWasVisible.current = boxVisible;
+  }, [result, loadingOnline, notFoundWord]);
+
   async function findWord(word) {
     if (word === lastQuery.current) return null;
     lastQuery.current = word;
@@ -398,6 +423,10 @@ export default function Editor({
         }}
         persistentScrollbar={true}
         removeClippedSubviews={true}
+        onScroll={(event) => {
+          scrollOffsetY.current = event.nativeEvent.contentOffset.y;
+        }}
+        scrollEventThrottle={16}
       >
         {/* ####### Title ##### */}
         <TextInput
@@ -562,7 +591,7 @@ const styles = StyleSheet.create({
   resultContainer: {
     fontFamily: "iA Writer Duo",
     width: "100%",
-    height: 165,
+    height: RESULT_BOX_HEIGHT,
     backgroundColor: "#E6E6E6",
     padding: 16,
     paddingTop: 12,
