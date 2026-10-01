@@ -14,6 +14,7 @@ import { useTheme } from "@react-navigation/native";
 import { saveCustomWord } from "../lib/customDictDB";
 import { getOfflineLangs } from "../lib/appDB";
 import { languages } from "../languages";
+import { localizedLanguageLabel } from "../lib/languageLabels";
 import SelectField from "../components/SelectField";
 import Chip from "../components/Chip";
 
@@ -157,7 +158,7 @@ export default function AddCustomWord({ navigation, route }) {
           value={word}
           onChangeText={setWord}
           placeholder="ex: serendipity"
-          placeholderTextColor={colors.border}
+          placeholderTextColor={colors.text + "66"}
           autoCapitalize="none"
           textAlignVertical="center"
           includeFontPadding={false}
@@ -168,7 +169,7 @@ export default function AddCustomWord({ navigation, route }) {
           {availableLangs.map((l) => (
             <Chip
               key={l.code}
-              label={l.label}
+              label={localizedLanguageLabel(l.code, l.label)}
               active={lang === l.code}
               onPress={() => {
                 setLang(l.code);
@@ -199,7 +200,7 @@ export default function AddCustomWord({ navigation, route }) {
           value={definition}
           onChangeText={setDefinition}
           placeholder="O que essa palavra significa?"
-          placeholderTextColor={colors.border}
+          placeholderTextColor={colors.text + "66"}
           multiline
           textAlignVertical="top"
           includeFontPadding={false}

@@ -10,13 +10,17 @@ import { useTheme } from "@react-navigation/native";
 
 import { getCustomWords, deleteCustomWord } from "../lib/customDictDB";
 import { languages } from "../languages";
+import { localizedLanguageLabel } from "../lib/languageLabels";
 import AddIcon from "../assets/icons/Add";
 import TrashIcon from "../assets/icons/Trash";
 import ConfirmDialog from "../components/ConfirmDialog";
 import Chip from "../components/Chip";
 
 const langLabel = (code) =>
-  languages.find((l) => l.code === code)?.label || code;
+  localizedLanguageLabel(
+    code,
+    languages.find((l) => l.code === code)?.label || code
+  );
 
 export default function CustomDictionary({ navigation }) {
   const { colors } = useTheme();

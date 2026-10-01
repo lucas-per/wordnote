@@ -29,6 +29,7 @@ import {
   updateLang,
 } from "../lib/appDB";
 import { findCustomWord } from "../lib/customDictDB";
+import { fetchOnlineDefinition } from "../lib/onlineDictionary";
 
 export default function Editor({
   navigation,
@@ -49,6 +50,8 @@ export default function Editor({
 
   const [result, setResult] = useState(null);
   const [notFoundWord, setNotFoundWord] = useState(null);
+  const [loadingOnline, setLoadingOnline] = useState(false);
+  const [onlineWord, setOnlineWord] = useState(null);
   const [noteContent, setNoteContent] = useState("");
   const [cursorPos, setCursorPos] = useState({ start: 0, end: 0 });
   const [title, setTitle] = useState("");
@@ -66,6 +69,17 @@ export default function Editor({
   // --------------------------------------
   // Cycle
   // --------------------------------------
+  useEffect(() => {
+    // Ao voltar pra essa tela (ex: depois de cadastrar uma palavra em
+    // "Adicionar palavra"), limpa a última consulta pra que tocar na
+    // mesma palavra de novo busque de novo, já trazendo o resultado
+    // recém-adicionado em vez de ser ignorado como "repetida".
+    const unsubscribe = navigation.addListener("focus", () => {
+      lastQuery.current = null;
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   useEffect(() => {
     if (route.params?.id) {
       noteID.current = route.params.id;
@@ -227,6 +241,7 @@ export default function Editor({
     if (!word) {
       setResult(null);
       setNotFoundWord(null);
+      setOnlineWord(null);
       return null;
     }
 
@@ -236,6 +251,7 @@ export default function Editor({
     const customEntry = await findCustomWord(q, lang);
     if (customEntry) {
       setNotFoundWord(null);
+      setOnlineWord(null);
       setResult(
         JSON.stringify({
           _array: [
@@ -261,12 +277,35 @@ export default function Editor({
       tx.executeSql(
         `select * from words WHERE word='${q}'`,
         [],
-        (_, { rows }) => {
+        async (_, { rows }) => {
           if (rows.length > 0) {
             setNotFoundWord(null);
+            setOnlineWord(null);
             setResult(JSON.stringify(rows));
+            return;
+          }
+
+          // Não achou localmente: tenta a busca online (só inglês,
+          // ver lib/onlineDictionary.js) antes de desistir de vez.
+          setLoadingOnline(true);
+          const onlineEntry = await fetchOnlineDefinition(q, lang);
+          setLoadingOnline(false);
+
+          if (word !== lastQuery.current) return; // cursor já mudou de palavra
+
+          if (onlineEntry) {
+            setNotFoundWord(null);
+            setResult(JSON.stringify({ _array: [onlineEntry] }));
+
+            const parsedMeanings = JSON.parse(onlineEntry.meanings);
+            setOnlineWord({
+              word: onlineEntry.word,
+              partOfSpeech: parsedMeanings[0]?.partOfSpeech || "",
+              definition: parsedMeanings[0]?.definitions?.[0]?.definition || "",
+            });
           } else {
             setResult(null);
+            setOnlineWord(null);
             setNotFoundWord(q);
           }
         }
@@ -408,7 +447,21 @@ export default function Editor({
       </ScrollView>
 
       {/* ####### Result ##### */}
-      {result && (
+      {loadingOnline && (
+        <View
+          style={[
+            styles.resultContainer,
+            styles.notFoundContainer,
+            { backgroundColor: colors.backgroundLevel2 },
+          ]}
+        >
+          <Text style={[styles.notFoundText, { color: colors.text }]}>
+            Buscando online...
+          </Text>
+        </View>
+      )}
+
+      {!loadingOnline && result && (
         <ScrollView
           ref={scrollParentResult}
           contentContainerStyle={{ paddingBottom: 30, flexGrow: 1 }}
@@ -430,10 +483,35 @@ export default function Editor({
           }}
         >
           {parseResult(result)}
+
+          {onlineWord && (
+            <TouchableWithoutFeedback
+              onPress={() =>
+                navigation.navigate("Settings.customDictAdd", {
+                  word: onlineWord.word,
+                  partOfSpeech: onlineWord.partOfSpeech,
+                  definition: onlineWord.definition,
+                  lang,
+                })
+              }
+            >
+              <View
+                style={[
+                  styles.addWordButton,
+                  styles.saveOnlineButton,
+                  { backgroundColor: colors.primary },
+                ]}
+              >
+                <Text style={styles.addWordButtonText}>
+                  Salvar no dicionário pessoal
+                </Text>
+              </View>
+            </TouchableWithoutFeedback>
+          )}
         </ScrollView>
       )}
 
-      {!result && notFoundWord && (
+      {!loadingOnline && !result && notFoundWord && (
         <View
           style={[
             styles.resultContainer,
@@ -502,6 +580,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 18,
     paddingVertical: 10,
+  },
+  saveOnlineButton: {
+    alignSelf: "flex-start",
+    marginTop: 12,
   },
   addWordButtonText: {
     color: "#fff",

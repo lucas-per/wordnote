@@ -26,12 +26,17 @@ function SelectField({ label, value, placeholder, options, onSelect }) {
         <Text
           style={[
             styles.fieldText,
-            { color: value ? colors.text : colors.border },
+            { color: value ? colors.text : colors.text + "66" },
           ]}
         >
           {value || placeholder}
         </Text>
-        <Chevron width={16} height={16} fill={colors.text} />
+        <Chevron
+          width={16}
+          height={16}
+          fill={colors.text}
+          style={{ transform: [{ rotate: "90deg" }] }}
+        />
       </TouchableOpacity>
 
       <Modal
@@ -113,7 +118,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: "iA Writer Quattro",
-    fontWeight: "600",
+    fontWeight: "bold",
     fontSize: 16,
     lineHeight: 20,
     includeFontPadding: false,
@@ -131,6 +136,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 19,
     includeFontPadding: false,
+    textTransform: "capitalize",
   },
 });
 
